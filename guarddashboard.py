@@ -5,7 +5,7 @@ import os
 
 st.set_page_config(page_title="Guard Response Portal", layout="wide")
 
-# Login
+# ====================== LOGIN ======================
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 
@@ -21,7 +21,7 @@ if not st.session_state.logged_in:
             st.error("Incorrect credentials")
     st.stop()
 
-# App
+# ====================== SETUP ======================
 st.title("🛡️ GUARD RESPONSE PORTAL")
 st.caption("WeAreWatchTower.com")
 
@@ -32,10 +32,12 @@ if os.path.exists(CSV_FILE):
 else:
     df = pd.DataFrame(columns=["Date", "Event Time", "Guard", "Arrival Time", "Location", "Event Type", "Notes"])
 
-page = st.sidebar.radio("Navigation", ["Log New Event", "Live Reports"])
+page = st.sidebar.radio("Navigation", ["Log New Event", "Live Reports", "Performance Charts"])
 
+# ====================== LOG NEW EVENT ======================
 if page == "Log New Event":
     st.header("LOG NEW EVENT")
+    
     with st.form("log_form"):
         col1, col2 = st.columns(2)
         with col1:
@@ -64,15 +66,35 @@ if page == "Log New Event":
             }
             df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
             df.to_csv(CSV_FILE, index=False)
+            
             st.success("**✅ EVENT CAPTURED SUCCESSFULLY!**")
             st.balloons()
             st.rerun()
 
+# ====================== LIVE REPORTS ======================
 elif page == "Live Reports":
     st.header("Recent Events")
     if df.empty:
         st.info("No events logged yet.")
     else:
         st.dataframe(df, use_container_width=True, hide_index=True)
+
+# ====================== PERFORMANCE CHARTS ======================
+elif page == "Performance Charts":
+    st.header("📊 Performance Charts")
+    if df.empty:
+        st.info("No events logged yet.")
+    else:
+        # Response Time Calculation (simple version)
+        df['Response Time (min)'] = pd.to_datetime(df['Arrival Time'], errors='coerce') - pd.to_datetime(df['Event Time'], errors='coerce')
+        df['Response Time (min)'] = df['Response Time (min)'].dt.total_seconds() / 60
+        
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Total Events", len(df))
+        if not df['Response Time (min)'].isna().all():
+            col2.metric("Avg Response Time", f"{df['Response Time (min)'].mean():.1f} min")
+        
+        st.subheader("Events by Type")
+        st.bar_chart(df['Event Type'].value_counts())
 
 st.caption("WeAreWatchTower.com • Guard Response System")
