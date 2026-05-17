@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import os
+import plotly.express as px
 
 st.set_page_config(page_title="Guard Response Portal", layout="wide")
 
@@ -90,17 +91,12 @@ elif page == "Performance Charts":
         
         st.subheader("Events by Type")
         type_counts = df['Event Type'].value_counts()
-        st.bar_chart(type_counts, height=400)   # Skinnier + taller bar chart
+        st.bar_chart(type_counts, height=400)
         
         st.subheader("Distribution by Percentage")
-        fig = pd.DataFrame({
-            'Event Type': type_counts.index,
-            'Count': type_counts.values
-        })
-        st.bar_chart(fig.set_index('Event Type'), height=400)
-        
-        # Pie Chart
-        st.subheader("Event Type Breakdown (Pie)")
-        st.plotly_chart(pd.DataFrame(type_counts).plot.pie(y='Event Type', autopct='%1.1f%%', title="Event Distribution"), use_container_width=True)
+        fig = px.pie(names=type_counts.index, values=type_counts.values, 
+                     title="Event Type Breakdown", 
+                     hole=0.3)  # Donut style pie chart
+        st.plotly_chart(fig, use_container_width=True)
 
 st.caption("WeAreWatchTower.com • Guard Response System")
