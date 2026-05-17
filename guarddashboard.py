@@ -31,7 +31,7 @@ CSV_FILE = "guard_events.csv"
 if os.path.exists(CSV_FILE):
     df = pd.read_csv(CSV_FILE)
 else:
-    df = pd.DataFrame(columns=["Date", "Event Time", "Guard", "Arrival Time", "Location", "Event Type", "Notes"])
+    df = pd.DataFrame(columns=["Date", "Event Time", "Response Type", "Arrival Time", "Location", "Event Type", "Notes"])
 
 page = st.sidebar.radio("Navigation", ["Log New Event", "Live Reports", "Performance Charts"])
 
@@ -44,7 +44,7 @@ if page == "Log New Event":
         with col1:
             date = st.date_input("Event Date", datetime.now().date())
             time = st.text_input("Event Time", "12:00")
-            guard = st.text_input("Dispatched Guard", "Teddy")
+            response_type = st.selectbox("Response Type", ["In Person Guard", "Live Stream (Watch Tower)"])
         with col2:
             arrival = st.text_input("Guard Arrival Time", "12:05")
             location = st.text_input("Location", "Auria")
@@ -59,7 +59,7 @@ if page == "Log New Event":
             new_row = {
                 "Date": str(date),
                 "Event Time": time,
-                "Guard": guard,
+                "Response Type": response_type,
                 "Arrival Time": arrival,
                 "Location": location,
                 "Event Type": event_type,
@@ -72,12 +72,24 @@ if page == "Log New Event":
             st.balloons()
             st.rerun()
 
-# ====================== LIVE REPORTS ======================
+# ====================== LIVE REPORTS with DELETE ======================
 elif page == "Live Reports":
     st.header("Recent Events")
     if df.empty:
         st.info("No events logged yet.")
     else:
+        for idx in range(len(df)):
+            cols = st.columns([7, 1])
+            with cols[0]:
+                st.write(f"**{df.iloc[idx]['Date']} {df.iloc[idx]['Event Time']}** — {df.iloc[idx]['Response Type']} @ {df.iloc[idx]['Location']} | **{df.iloc[idx]['Event Type']}**")
+            with cols[1]:
+                if st.button("🗑️", key=f"del_{idx}"):
+                    df = df.drop(idx).reset_index(drop=True)
+                    df.to_csv(CSV_FILE, index=False)
+                    st.success("Event deleted!")
+                    st.rerun()
+        
+        st.subheader("Full Table")
         st.dataframe(df, use_container_width=True, hide_index=True)
 
 # ====================== PERFORMANCE CHARTS ======================
@@ -94,9 +106,7 @@ elif page == "Performance Charts":
         st.bar_chart(type_counts, height=400)
         
         st.subheader("Distribution by Percentage")
-        fig = px.pie(names=type_counts.index, values=type_counts.values, 
-                     title="Event Type Breakdown", 
-                     hole=0.3)  # Donut style pie chart
+        fig = px.pie(names=type_counts.index, values=type_counts.values, title="Event Type Breakdown")
         st.plotly_chart(fig, use_container_width=True)
 
 st.caption("WeAreWatchTower.com • Guard Response System")
