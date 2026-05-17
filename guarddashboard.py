@@ -50,7 +50,7 @@ if page == "Log New Event":
             location = st.text_input("Location", "Auria")
             event_type = st.selectbox("Event Type", [
                 "Alarm", "False Alarm", "Alarm Testing", "User Error",
-                "Power Outage", "Signal Lost", "SIGNAL NOT RECEIVED", 
+                "Power Outage", "Signal Lost", "TEST SIGNAL NOT RECEIVED",
                 "Motion", "Door Contact", "Perimeter Breach", "Other"
             ])
             notes = st.text_area("Notes")
@@ -108,5 +108,16 @@ elif page == "Performance Charts":
         st.subheader("Distribution by Percentage")
         fig = px.pie(names=type_counts.index, values=type_counts.values, title="Event Type Breakdown")
         st.plotly_chart(fig, use_container_width=True)
+        
+        # Event Type Key / Legend
+        st.subheader("Event Type Key")
+        st.markdown("""
+        **Event Type Key:**
+        - **TEST SIGNAL NOT RECEIVED** → Alarm station could not send test signal (network issue)
+        - **Power Outage** → Power loss at site
+        - **Signal Lost** → Connection lost
+        - **False Alarm** → Unintended trigger
+        - **Alarm Testing** → Scheduled test
+        """)
 
 st.caption("WeAreWatchTower.com • Guard Response System")
