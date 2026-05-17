@@ -5,7 +5,7 @@ import os
 
 st.set_page_config(page_title="Guard Response Portal", layout="wide")
 
-# ====================== LOGIN ======================
+# Login
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 
@@ -21,7 +21,7 @@ if not st.session_state.logged_in:
             st.error("Incorrect credentials")
     st.stop()
 
-# ====================== SETUP ======================
+# Setup
 st.title("🛡️ GUARD RESPONSE PORTAL")
 st.caption("WeAreWatchTower.com")
 
@@ -85,16 +85,16 @@ elif page == "Performance Charts":
     if df.empty:
         st.info("No events logged yet.")
     else:
-        # Response Time Calculation (simple version)
-        df['Response Time (min)'] = pd.to_datetime(df['Arrival Time'], errors='coerce') - pd.to_datetime(df['Event Time'], errors='coerce')
-        df['Response Time (min)'] = df['Response Time (min)'].dt.total_seconds() / 60
-        
-        col1, col2, col3 = st.columns(3)
+        col1, col2 = st.columns(2)
         col1.metric("Total Events", len(df))
-        if not df['Response Time (min)'].isna().all():
-            col2.metric("Avg Response Time", f"{df['Response Time (min)'].mean():.1f} min")
         
         st.subheader("Events by Type")
-        st.bar_chart(df['Event Type'].value_counts())
+        type_counts = df['Event Type'].value_counts()
+        st.bar_chart(type_counts)
+        
+        st.subheader("Distribution")
+        fig = pd.DataFrame(type_counts).reset_index()
+        fig.columns = ['Event Type', 'Count']
+        st.bar_chart(fig.set_index('Event Type'))
 
 st.caption("WeAreWatchTower.com • Guard Response System")
